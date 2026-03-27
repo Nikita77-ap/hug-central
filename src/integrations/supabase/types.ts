@@ -14,7 +14,130 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      comments: {
+        Row: {
+          anonymous_name: string
+          content: string
+          created_at: string
+          entry_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          anonymous_name?: string
+          content: string
+          created_at?: string
+          entry_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          anonymous_name?: string
+          content?: string
+          created_at?: string
+          entry_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comments_entry_id_fkey"
+            columns: ["entry_id"]
+            isOneToOne: false
+            referencedRelation: "entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      entries: {
+        Row: {
+          anonymous_name: string
+          content: string
+          created_at: string
+          id: string
+          mood: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          anonymous_name?: string
+          content: string
+          created_at?: string
+          id?: string
+          mood?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          anonymous_name?: string
+          content?: string
+          created_at?: string
+          id?: string
+          mood?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          read: boolean
+          receiver_id: string
+          sender_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          read?: boolean
+          receiver_id: string
+          sender_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          read?: boolean
+          receiver_id?: string
+          sender_id?: string
+        }
+        Relationships: []
+      }
+      reactions: {
+        Row: {
+          created_at: string
+          entry_id: string
+          id: string
+          reaction_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          entry_id: string
+          id?: string
+          reaction_type?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          entry_id?: string
+          id?: string
+          reaction_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reactions_entry_id_fkey"
+            columns: ["entry_id"]
+            isOneToOne: false
+            referencedRelation: "entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
