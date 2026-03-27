@@ -1,11 +1,12 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, useLocation, Link } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { Heart, Bell, User, PenLine } from "lucide-react";
 import Index from "./pages/Index";
 import AuthPage from "./pages/AuthPage";
 import NotFound from "./pages/NotFound";
@@ -25,18 +26,74 @@ import QuotesScreen from "./pages/QuotesScreen";
 
 const queryClient = new QueryClient();
 
+const pageTitles: Record<string, string> = {
+  "/": "Welcome back 💛",
+  "/write": "Write Feeling",
+  "/posts": "Public Posts",
+  "/quotes": "Motivational Quotes",
+  "/comments": "Comments",
+  "/chats": "Anonymous Chats",
+  "/diary": "Private Diary",
+  "/mood": "Mood Tracker",
+  "/notifications": "Notifications",
+  "/profile": "Profile",
+  "/settings": "Settings",
+  "/report": "Report",
+};
+
+const AppHeader = () => {
+  const location = useLocation();
+  const title = pageTitles[location.pathname] || "Hunguta";
+
+  return (
+    <header className="sticky top-0 z-50 h-14 flex items-center justify-between border-b border-border bg-background/90 backdrop-blur-md px-4">
+      <div className="flex items-center gap-3">
+        <SidebarTrigger />
+        <div className="hidden md:flex items-center gap-2">
+          <Heart className="w-5 h-5 text-primary" fill="hsl(var(--primary))" />
+          <span className="font-display font-bold text-foreground">{title}</span>
+        </div>
+        <span className="md:hidden font-display font-bold text-foreground text-sm">{title}</span>
+      </div>
+
+      {/* Right nav links */}
+      <nav className="flex items-center gap-1">
+        <Link to="/write" className="p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/5 transition-colors" title="Write">
+          <PenLine className="w-5 h-5" />
+        </Link>
+        <Link to="/notifications" className="p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/5 transition-colors" title="Notifications">
+          <Bell className="w-5 h-5" />
+        </Link>
+        <Link to="/profile" className="p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/5 transition-colors" title="Profile">
+          <User className="w-5 h-5" />
+        </Link>
+      </nav>
+    </header>
+  );
+};
+
+const AppFooter = () => (
+  <footer className="border-t border-border bg-card/50 py-4 px-4">
+    <div className="max-w-2xl mx-auto flex items-center justify-between">
+      <div className="flex items-center gap-2">
+        <Heart className="w-4 h-4 text-primary" fill="hsl(var(--primary))" />
+        <span className="text-xs text-muted-foreground font-display font-medium">Hunguta</span>
+      </div>
+      <p className="text-[10px] text-muted-foreground">Your feelings matter. You are not alone. 💛</p>
+    </div>
+  </footer>
+);
+
 const AppLayout = ({ children }: { children: React.ReactNode }) => (
   <SidebarProvider>
     <div className="min-h-screen flex w-full">
       <AppSidebar />
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="sticky top-0 z-50 h-12 flex items-center border-b border-border bg-background/80 backdrop-blur-md px-4">
-          <SidebarTrigger />
-          <span className="ml-3 font-display font-bold text-foreground text-sm md:hidden">Hunguta</span>
-        </header>
+        <AppHeader />
         <main className="flex-1 max-w-2xl w-full mx-auto px-4 py-6">
           {children}
         </main>
+        <AppFooter />
       </div>
     </div>
   </SidebarProvider>
