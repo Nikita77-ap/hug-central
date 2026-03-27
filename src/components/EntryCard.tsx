@@ -1,27 +1,31 @@
 import { useState } from "react";
-import { Heart, MessageCircle, ChevronDown, ChevronUp, Send } from "lucide-react";
+import { MessageCircle, ChevronDown, ChevronUp, Send } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import type { Tables } from "@/integrations/supabase/types";
+import ReactionBar from "./ReactionBar";
 
 const moodEmojis: Record<string, string> = {
-  happy: "😊",
-  sad: "😢",
-  anxious: "😰",
-  angry: "😤",
-  hopeful: "🌟",
-  grateful: "🙏",
-  lonely: "💔",
-  confused: "🤔",
+  happy: "😊", sad: "😢", anxious: "😰", angry: "😤",
+  hopeful: "🌟", grateful: "🙏", lonely: "💔", confused: "🤔", tired: "😴",
+};
+
+const postTypeLabels: Record<string, { label: string; emoji: string; color: string }> = {
+  feeling: { label: "Feeling", emoji: "💛", color: "bg-warm-glow/20 text-foreground" },
+  confession: { label: "Confession", emoji: "🤫", color: "bg-accent/20 text-accent" },
+  need_advice: { label: "Need Advice", emoji: "🙋", color: "bg-soft-blue/20 text-soft-blue" },
+  want_to_talk: { label: "Want to Talk", emoji: "💬", color: "bg-calm-green/20 text-calm-green" },
+  vent: { label: "Vent Mode", emoji: "🌊", color: "bg-destructive/20 text-destructive" },
 };
 
 interface EntryCardProps {
-  entry: Tables<"entries">;
+  entry: Tables<"entries"> & { post_type?: string };
   comments: Tables<"comments">[];
   reactions: Tables<"reactions">[];
   onRefresh: () => void;
@@ -33,32 +37,10 @@ const EntryCard = ({ entry, comments, reactions, onRefresh }: EntryCardProps) =>
   const [commentText, setCommentText] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const hugCount = reactions.filter((r) => r.reaction_type === "hug").length;
-  const hasHugged = reactions.some((r) => r.user_id === user?.id && r.reaction_type === "hug");
   const isOwner = entry.user_id === user?.id;
-
-  const handleHug = async () => {
-    if (!user) return;
-    try {
-      if (hasHugged) {
-        await supabase
-          .from("reactions")
-          .delete()
-          .eq("entry_id", entry.id)
-          .eq("user_id", user.id)
-          .eq("reaction_type", "hug");
-      } else {
-        await supabase.from("reactions").insert({
-          entry_id: entry.id,
-          user_id: user.id,
-          reaction_type: "hug",
-        });
-      }
-      onRefresh();
-    } catch {
-      toast.error("Something went wrong");
-    }
-  };
+  const postType = (entry as any).post_type || "feeling";
+  const isVent = postType === "vent";
+  const typeInfo = postTypeLabels[postType] || postTypeLabels.feeling;
 
   const handleComment = async () => {
     if (!user || !commentText.trim()) return;
@@ -86,7 +68,10 @@ const EntryCard = ({ entry, comments, reactions, onRefresh }: EntryCardProps) =>
       className="bg-card rounded-lg border border-border p-5 space-y-4"
     >
       <div className="flex items-start justify-between">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${typeInfo.color}`}>
+            {typeInfo.emoji} {typeInfo.label}
+          </span>
           {entry.mood && (
             <span className="text-2xl">{moodEmojis[entry.mood] || "💭"}</span>
           )}
@@ -103,33 +88,34 @@ const EntryCard = ({ entry, comments, reactions, onRefresh }: EntryCardProps) =>
 
       <p className="font-serif text-lg leading-relaxed text-foreground">{entry.content}</p>
 
-      <div className="flex items-center gap-4 pt-2">
-        <motion.button
-          whileTap={{ scale: 1.3 }}
-          onClick={handleHug}
-          className={`flex items-center gap-1.5 text-sm transition-colors ${
-            hasHugged ? "text-hug-pink" : "text-muted-foreground hover:text-hug-pink"
-          }`}
-        >
-          <Heart
-            className="w-5 h-5"
-            fill={hasHugged ? "hsl(var(--hug-pink))" : "none"}
-          />
-          <span>{hugCount > 0 ? `${hugCount} hug${hugCount > 1 ? "s" : ""}` : "Send hug"}</span>
-        </motion.button>
+      <ReactionBar
+        entryId={entry.id}
+        reactions={reactions}
+        onRefresh={onRefresh}
+        ventMode={isVent}
+      />
 
-        <button
-          onClick={() => setShowComments(!showComments)}
-          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <MessageCircle className="w-5 h-5" />
-          <span>{comments.length > 0 ? `${comments.length}` : "Advise"}</span>
-          {showComments ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-        </button>
-      </div>
+      {!isVent && (
+        <div className="pt-1">
+          <button
+            onClick={() => setShowComments(!showComments)}
+            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <MessageCircle className="w-5 h-5" />
+            <span>{comments.length > 0 ? `${comments.length} comment${comments.length > 1 ? "s" : ""}` : "Advise"}</span>
+            {showComments ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          </button>
+        </div>
+      )}
+
+      {isVent && (
+        <p className="text-xs text-muted-foreground italic">
+          🌊 Vent mode — only support reactions, no comments
+        </p>
+      )}
 
       <AnimatePresence>
-        {showComments && (
+        {showComments && !isVent && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}

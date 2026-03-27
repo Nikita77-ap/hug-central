@@ -16,23 +16,34 @@ const moods = [
   { key: "grateful", emoji: "🙏" },
   { key: "lonely", emoji: "💔" },
   { key: "confused", emoji: "🤔" },
+  { key: "tired", emoji: "😴" },
 ];
 
-const prompts = [
-  "How are you feeling today? 💛",
-  "What's on your heart right now?",
-  "Never give up — share what's on your mind.",
-  "You matter. Tell us how you're doing.",
-  "Take a deep breath and let it out here...",
+const postTypes = [
+  { key: "feeling", label: "Share Feeling", emoji: "💛" },
+  { key: "confession", label: "Confession", emoji: "🤫" },
+  { key: "need_advice", label: "Need Advice", emoji: "🙋" },
+  { key: "want_to_talk", label: "Want to Talk", emoji: "💬" },
+  { key: "vent", label: "Vent Mode", emoji: "🌊" },
 ];
+
+const prompts: Record<string, string[]> = {
+  feeling: ["How are you feeling today? 💛", "What's on your heart right now?", "Take a deep breath and let it out here..."],
+  confession: ["This is a safe space. Share what's on your mind... 🤫", "No judgment here. Let it out..."],
+  need_advice: ["What do you need help with? 🙋", "Ask the community for advice..."],
+  want_to_talk: ["Sometimes we just need someone to listen 💬", "Share what's going on..."],
+  vent: ["Let it all out. Only hugs here, no comments 🌊", "This is your safe space to vent..."],
+};
 
 const NewEntryForm = ({ onCreated }: { onCreated: () => void }) => {
   const { user } = useAuth();
   const [content, setContent] = useState("");
   const [mood, setMood] = useState<string | null>(null);
+  const [postType, setPostType] = useState("feeling");
   const [submitting, setSubmitting] = useState(false);
 
-  const prompt = prompts[Math.floor(Math.random() * prompts.length)];
+  const currentPrompts = prompts[postType] || prompts.feeling;
+  const prompt = currentPrompts[Math.floor(Math.random() * currentPrompts.length)];
 
   const handleSubmit = async () => {
     if (!user || !content.trim()) return;
@@ -42,6 +53,7 @@ const NewEntryForm = ({ onCreated }: { onCreated: () => void }) => {
         user_id: user.id,
         content: content.trim(),
         mood,
+        post_type: postType,
       });
       setContent("");
       setMood(null);
@@ -60,13 +72,30 @@ const NewEntryForm = ({ onCreated }: { onCreated: () => void }) => {
       animate={{ opacity: 1 }}
       className="bg-card rounded-lg border border-border p-5 space-y-4"
     >
+      {/* Post type selector */}
+      <div className="flex flex-wrap gap-2">
+        {postTypes.map((pt) => (
+          <button
+            key={pt.key}
+            onClick={() => setPostType(pt.key)}
+            className={`text-xs px-3 py-1.5 rounded-full border transition-all font-medium ${
+              postType === pt.key
+                ? "bg-primary text-primary-foreground border-primary"
+                : "border-border text-muted-foreground hover:bg-secondary"
+            }`}
+          >
+            {pt.emoji} {pt.label}
+          </button>
+        ))}
+      </div>
+
       <div className="flex items-center gap-2 text-primary">
         <Sparkles className="w-5 h-5" />
         <p className="font-serif text-lg italic text-muted-foreground">{prompt}</p>
       </div>
 
       <Textarea
-        placeholder="Write your feelings here... Everything is anonymous."
+        placeholder={postType === "vent" ? "Let it all out... Only support reactions, no comments." : "Write your feelings here... Everything is anonymous."}
         value={content}
         onChange={(e) => setContent(e.target.value)}
         className="bg-background min-h-[120px] font-serif text-base"
