@@ -49,6 +49,27 @@ export type Database = {
           },
         ]
       }
+      encouragement_messages: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          message: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          message: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          message?: string
+        }
+        Relationships: []
+      }
       entries: {
         Row: {
           anonymous_name: string
@@ -56,6 +77,7 @@ export type Database = {
           created_at: string
           id: string
           mood: string | null
+          post_type: string
           updated_at: string
           user_id: string
         }
@@ -65,6 +87,7 @@ export type Database = {
           created_at?: string
           id?: string
           mood?: string | null
+          post_type?: string
           updated_at?: string
           user_id: string
         }
@@ -74,6 +97,7 @@ export type Database = {
           created_at?: string
           id?: string
           mood?: string | null
+          post_type?: string
           updated_at?: string
           user_id?: string
         }
@@ -103,6 +127,66 @@ export type Database = {
           read?: boolean
           receiver_id?: string
           sender_id?: string
+        }
+        Relationships: []
+      }
+      mood_entries: {
+        Row: {
+          created_at: string
+          id: string
+          mood: string
+          note: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          mood: string
+          note?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mood?: string
+          note?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          anonymous_name: string
+          avatar_seed: string
+          bio: string | null
+          created_at: string
+          hugs_received: number
+          hugs_sent: number
+          id: string
+          mood_status: string | null
+          support_score: number
+        }
+        Insert: {
+          anonymous_name: string
+          avatar_seed?: string
+          bio?: string | null
+          created_at?: string
+          hugs_received?: number
+          hugs_sent?: number
+          id: string
+          mood_status?: string | null
+          support_score?: number
+        }
+        Update: {
+          anonymous_name?: string
+          avatar_seed?: string
+          bio?: string | null
+          created_at?: string
+          hugs_received?: number
+          hugs_sent?: number
+          id?: string
+          mood_status?: string | null
+          support_score?: number
         }
         Relationships: []
       }
@@ -143,7 +227,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_anonymous_name: { Args: never; Returns: string }
     }
     Enums: {
       [_ in never]: never
